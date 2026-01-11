@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tr1xx | Portfolio</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a12 0%, #12121f 50%, #0a0a12 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Subtle Background */
+        .bg-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .glow-spot {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.4;
+        }
+
+        .glow-spot:nth-child(1) {
+            width: 500px;
+            height: 500px;
+            background: rgba(0, 200, 255, 0.15);
+            top: -200px;
+            left: -100px;
+        }
+
+        .glow-spot:nth-child(2) {
+            width: 400px;
+            height: 400px;
+            background: rgba(180, 0, 255, 0.12);
+            bottom: -150px;
+            right: -100px;
+        }
+
+        /* Neon Title */
+        .neon-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #00d4ff, #b400ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(0, 212, 255, 0.4);
+            letter-spacing: 8px;
+        }
+
+        /* Tab Buttons */
+        .tab-btn {
+            font-family: 'Orbitron', sans-serif;
+            padding: 16px 40px;
+            font-size: 1.1rem;
+            border: 2px solid #333;
+            background: rgba(20, 20, 30, 0.8);
+            color: #666;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .tab-btn:hover {
+            border-color: #555;
+            color: #999;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active-games {
+            border-color: #00d4ff;
+            color: #00d4ff;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4), inset 0 0 20px rgba(0, 212, 255, 0.1);
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .tab-btn.active-other {
+            border-color: #b400ff;
+            color: #b400ff;
+            box-shadow: 0 0 30px rgba(180, 0, 255, 0.4), inset 0 0 20px rgba(180, 0, 255, 0.1);
+            background: rgba(180, 0, 255, 0.1);
+        }
+
+        /* Project Cards */
+        .project-card {
+            background: rgba(20, 20, 35, 0.9);
+            border: 2px solid rgba(100, 100, 150, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .project-card.game::before {
+            background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+        }
+
+        .project-card.other::before {
+            background: linear-gradient(90deg, transparent, #b400ff, transparent);
+        }
+
+        .project-card:hover::before {
+            opacity: 1;
+        }
+
+        .project-card.game:hover {
+            border-color: #00d4ff;
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.25);
+            transform: translateY(-8px);
+        }
+
+        .project-card.other:hover {
+            border-color: #b400ff;
+            box-shadow: 0 0 40px rgba(180, 0, 255, 0.25);
+            transform: translateY(-8px);
+        }
+
+        .project-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .project-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .project-file {
+            font-size: 0.9rem;
+            color: #555;
+            font-family: monospace;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #15151f, #1a1a2e);
+            border: 2px solid;
+            border-radius: 30px;
+            padding: 50px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .modal-content.game-modal {
+            border-color: #00d4ff;
+            box-shadow: 0 0 60px rgba(0, 212, 255, 0.3);
+        }
+
+        .modal-content.other-modal {
+            border-color: #b400ff;
+            box-shadow: 0 0 60px rgba(180, 0, 255, 0.3);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .modal-file {
+            color: #555;
+            font-family: monospace;
+            margin-bottom: 30px;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 18px 30px;
+            margin: 15px 0;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            border: 2px solid;
+            border-radius: 50px;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .btn-test {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .btn-test:hover {
+            background: rgba(0, 255, 136, 0.15);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+            transform: scale(1.02);
+        }
+
+        .btn-download {
+            border-color: #ffaa00;
+            color: #ffaa00;
+        }
+
+        .btn-download:hover {
+            background: rgba(255, 170, 0, 0.15);
+            box-shadow: 0 0 30px rgba(255, 170, 0, 0.4);
+            transform: scale(1.02);
+        }
+
+        .btn-home {
+            border-color: #ff4488;
+            color: #ff4488;
+        }
+
+        .btn-home:hover {
+            background: rgba(255, 68, 136, 0.15);
+            box-shadow: 0 0 30px rgba(255, 68, 136, 0.4);
+            transform: scale(1.02);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 25px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.4);
+            border-radius: 50px;
+            color: #00ff88;
+            font-size: 1rem;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .status-badge.error {
+            background: rgba(255, 68, 68, 0.1);
+            border-color: rgba(255, 68, 68, 0.4);
+            color: #ff4444;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-badge.error .status-dot {
+            background: #ff4444;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #444;
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0a12;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #00d4ff, #b400ff);
+            border-radius: 4px;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #666;
+            padding: 40px;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .neon-title {
+                font-size: 2.5rem;
+                letter-spacing: 4px;
+            }
+            
+            .tab-btn {
+                padding: 12px 25px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="bg-glow">
+        <div class="glow-spot"></div>
+        <div class="glow-spot"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container mx-auto px-6 py-12">
+        <!-- Header -->
+        <header class="text-center mb-14">
+            <h1 class="neon-title mb-4">tr1xx</h1>
+            <p class="text-gray-500 text-xl tracking-widest mb-8">HTML PROJECTS PORTFOLIO</p>
+            
+            <div class="status-badge" id="statusBadge">
+                <div class="status-dot"></div>
+                <span id="projectCount">Загрузка...</span>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex justify-center gap-5 mb-12 flex-wrap">
+            <button class="tab-btn active-games" id="gamesTab" onclick="switchTab('games')">
+                🎮 Игры
+            </button>
+            <button class="tab-btn" id="otherTab" onclick="switchTab('other')">
+                ⚡ Программы и др.
+            </button>
+        </div>
+
+        <!-- Projects Grid -->
+        <div id="projectsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div class="loading col-span-full">
+                <div class="loading-spinner"></div>
+                <span>Загрузка проектов...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Modal -->
+    <div class="modal-overlay" id="projectModal" onclick="closeModalOutside(event)">
+        <div class="modal-content" id="modalContent" onclick="event.stopPropagation()">
+            <div class="modal-icon" id="modalIcon">🎮</div>
+            <h2 class="modal-title" id="modalTitle">Project Name</h2>
+            <p class="modal-file" id="modalFile">filename.html</p>
+            
+            <a href="#" class="action-btn btn-test" id="btnTest" target="_blank">
+                ▶️ Протестировать
+            </a>
+            <a href="#" class="action-btn btn-download" id="btnDownload" download>
+                📥 Скачать
+            </a>
+            <button class="action-btn btn-home" onclick="closeModal()">
+                🏠 На главную
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Project Data
+        let projects = [];
+        let currentTab = 'games';
+        let currentProject = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProjects();
+        });
+
+        // Load projects from projects.html
+        async function loadProjects() {
+            try {
+                const response = await fetch('projects.html');
+                
+                if (!response.ok) {
+                    throw new Error('Файл projects.html не найден');
+                }
+                
+                const html = await response.text();
+                
+                // Parse the HTML to extract JSON data
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const dataScript = doc.getElementById('projects-data');
+                
+                if (!dataScript) {
+                    throw new Error('Данные проектов не найдены в projects.html');
+                }
+                
+                projects = JSON.parse(dataScript.textContent);
+                
+                // Add unique IDs
+                projects = projects.map((p, index) => ({
+                    ...p,
+                    id: index + 1
+                }));
+                
+                updateStatus(projects.length);
+                renderProjects();
+                
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                showError(error.message);
+            }
+        }
+
+        // Update status badge
+        function updateStatus(count) {
+            const badge = document.getElementById('statusBadge');
+            badge.classList.remove('error');
+            document.getElementById('projectCount').textContent = 
+                `${count} ${getProjectWord(count)}`;
+        }
+
+        // Show error
+        function showError(message) {
+            const badge = document.getElementById('statusBadge');
+            badge.classList.add('error');
+            document.getElementById('projectCount').textContent = message;
+            
+            document.getElementById('projectsContainer').innerHTML = `
+                <div class="col-span-full empty-state">
+                    <div class="empty-icon">⚠️</div>
+                    <p class="text-xl mb-3">Ошибка загрузки</p>
+                    <p class="text-sm">${message}</p>
+                    <p class="text-sm mt-4">Убедитесь, что файл projects.html находится в той же папке</p>
+                </div>
+            `;
+        }
+
+        function getProjectWord(n) {
+            if (n === 1) return 'проект';
+            if (n >= 2 && n <= 4) return 'проекта';
+            return 'проектов';
+        }
+
+        // Render projects grid
+        function renderProjects() {
+            const container = document.getElementById('projectsContainer');
+            const filteredProjects = projects.filter(p => 
+                currentTab === 'games' ? p.type === 'game' : p.type === 'other'
+            );
+
+            if (filteredProjects.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full empty-state">
+                        <div class="empty-icon">${currentTab === 'games' ? '🎮' : '⚡'}</div>
+                        <p class="text-xl mb-3">Пока нет проектов</p>
+                        <p class="text-sm">Добавьте проекты в файл projects.html</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredProjects.map(project => `
+                <div class="project-card ${project.type === 'game' ? 'game' : 'other'}" 
+                     onclick="openProject(${project.id})">
+                    <div class="project-icon">${project.icon}</div>
+                    <div class="project-name">${project.name}</div>
+                    <div class="project-file">${project.file}</div>
+                </div>
+            `).join('');
+        }
+
+        // Switch tabs
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            const gamesTab = document.getElementById('gamesTab');
+            const otherTab = document.getElementById('otherTab');
+            
+            gamesTab.classList.remove('active-games');
+            otherTab.classList.remove('active-other');
+            
+            if (tab === 'games') {
+                gamesTab.classList.add('active-games');
+            } else {
+                otherTab.classList.add('active-other');
+            }
+            
+            renderProjects();
+        }
+
+        // Open project modal
+        function openProject(id) {
+            currentProject = projects.find(p => p.id === id);
+            if (!currentProject) return;
+
+            const modal = document.getElementById('projectModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            document.getElementById('modalIcon').textContent = currentProject.icon;
+            document.getElementById('modalTitle').textContent = currentProject.name;
+            document.getElementById('modalFile').textContent = currentProject.file;
+            
+            document.getElementById('btnTest').href = currentProject.file;
+            document.getElementById('btnDownload').href = currentProject.file;
+            document.getElementById('btnDownload').download = currentProject.file;
+
+            modalContent.className = 'modal-content ' + 
+                (currentProject.type === 'game' ? 'game-modal' : 'other-modal');
+
+            modal.classList.add('active');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('projectModal').classList.remove('active');
+        }
+
+        function closeModalOutside(event) {
+            if (event.target === event.currentTarget) {
+                closeModal();
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+            if (e.key === '1') switchTab('games');
+            if (e.key === '2') switchTab('other');
+        });
+    </script>
+</body>
+</html>
