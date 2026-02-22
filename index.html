@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>tr1xx Projects Hub</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         * {
             margin: 0;
@@ -174,7 +175,7 @@
         .project-card {
             background: var(--bg-card);
             border-radius: 24px;
-            padding: 2rem;
+            padding: 1.6rem 1.7rem;
             cursor: pointer;
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid var(--border-color);
@@ -183,6 +184,33 @@
             opacity: 0;
             transform: translateY(60px);
         }
+
+        /* Pinned Projects */
+        .project-card.pinned {
+            border-color: rgba(79, 209, 197, 0.55);
+            box-shadow:
+                0 0 0 1px rgba(79, 209, 197, 0.10),
+                0 20px 60px rgba(0,0,0,0.55);
+        }
+
+        .project-card.pinned::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(800px 220px at 15% 0%, rgba(79, 209, 197, 0.16), transparent 55%);
+            opacity: 1;
+            pointer-events: none;
+        }
+
+        .project-card.pinned:hover {
+            border-color: rgba(79, 209, 197, 0.80);
+            box-shadow:
+                0 0 0 1px rgba(79, 209, 197, 0.14),
+                0 30px 70px rgba(0,0,0,0.60);
+        }
+
+        /* legacy .pinned-badge is now rendered as a .corner-badge inside .card-badges */
+        .pinned-badge { }
 
         .project-card.visible {
             opacity: 1;
@@ -217,30 +245,86 @@
         }
 
         .card-icon {
-            width: 60px;
-            height: 60px;
+            width: 52px;
+            height: 52px;
             background: var(--bg-secondary);
-            border-radius: 16px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.35rem;
             border: 1px solid var(--border-color);
         }
 
         .project-card h3 {
-            font-size: 1.4rem;
+            font-size: 1.25rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
             letter-spacing: -0.5px;
+            line-height: 1.25;
         }
 
         .project-card p {
             color: var(--text-secondary);
-            font-size: 0.95rem;
+            font-size: 0.93rem;
+            line-height: 1.45;
         }
 
+        /* Card badges (pinned/telegram) */
+        .card-badges {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 6;
+        }
+
+        .corner-badge {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            user-select: none;
+            backdrop-filter: blur(10px);
+            text-decoration: none;
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.92);
+            transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+        }
+
+        .corner-badge:hover {
+            transform: translateY(-2px);
+        }
+
+        .corner-badge.pinned-badge {
+            background: rgba(79, 209, 197, 0.10);
+            border-color: rgba(79, 209, 197, 0.22);
+        }
+
+        .corner-badge.tg-badge {
+            background: rgba(34, 158, 217, 0.10);
+            border-color: rgba(34, 158, 217, 0.28);
+            color: rgba(152, 220, 255, 0.95);
+        }
+
+        .corner-badge.tg-badge:hover {
+            background: rgba(34, 158, 217, 0.16);
+            border-color: rgba(34, 158, 217, 0.50);
+        }
+
+        .corner-badge svg {
+            width: 18px;
+            height: 18px;
+            display: block;
+            fill: currentColor;
+        }
 
 
         /* Modal */
@@ -605,13 +689,35 @@
         // Card Template
         function createCardHTML(project) {
             const icon = project.icon || categoryIcons[project.category] || '📁';
+            const pinned = !!project.pinned;
+            const tg = project.telegram ? String(project.telegram) : '';
+
+            const pinHTML = pinned
+                ? `<div class="corner-badge pinned-badge" title="Закреплено" aria-label="Закреплено">📌</div>`
+                : '';
+
+            const tgHTML = tg
+                ? `
+                    <a class="corner-badge tg-badge" href="${tg}" target="_blank" rel="noopener" title="Telegram" aria-label="Telegram" data-no-modal="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M9.04 15.17 8.85 19.2c.5 0 .71-.21.97-.46l2.32-2.2 4.8 3.51c.88.49 1.51.23 1.73-.81L21.9 4.9c.27-1.25-.45-1.74-1.3-1.43L2.7 10.34c-1.22.47-1.2 1.14-.22 1.44l4.57 1.43L17.69 6.5c.5-.33.96-.15.58.18L9.04 15.17z"/>
+                        </svg>
+                    </a>
+                `
+                : '';
+
+            const badgesHTML = (pinned || tg)
+                ? `<div class="card-badges">${pinHTML}${tgHTML}</div>`
+                : '';
+
             return `
-                <div class="project-card" 
+                <div class="project-card ${pinned ? 'pinned' : ''}" 
                      data-file="${project.file}" 
                      data-name="${project.name}"
                      data-description="${project.description || ''}"
                      data-category="${project.category}"
                      data-icon="${icon}">
+                    ${badgesHTML}
                     <div class="card-icon">${icon}</div>
                     <h3>${project.name}</h3>
                     <p>${project.description || 'Нажмите, чтобы узнать больше'}</p>
@@ -619,11 +725,30 @@
             `;
         }
 
+        // Sorting: pinned first, then by order (if provided), then by original JSON order
+        function getSortedProjects(list) {
+            return list
+                .map((p, idx) => ({ ...p, __idx: idx }))
+                .sort((a, b) => {
+                    const ap = a.pinned ? 1 : 0;
+                    const bp = b.pinned ? 1 : 0;
+                    if (ap !== bp) return bp - ap; // pinned first
+
+                    const ao = Number.isFinite(a.order) ? a.order : Number.POSITIVE_INFINITY;
+                    const bo = Number.isFinite(b.order) ? b.order : Number.POSITIVE_INFINITY;
+                    if (ao !== bo) return ao - bo;
+
+                    return a.__idx - b.__idx;
+                });
+        }
+
         // Render Projects
         function renderProjects() {
-            const filtered = currentCategory === 'all' 
-                ? projects 
+            const base = currentCategory === 'all'
+                ? projects
                 : projects.filter(p => p.category === currentCategory);
+
+            const filtered = getSortedProjects(base);
 
             if (filtered.length === 0) {
                 container.innerHTML = `
@@ -639,12 +764,17 @@
                 const grouped = {};
                 const categoryOrder = ['games', 'simulators', 'programs'];
                 
-                // Group projects by category
+                // Group projects by category (keep custom order already applied in `filtered`)
                 filtered.forEach(project => {
                     if (!grouped[project.category]) {
                         grouped[project.category] = [];
                     }
                     grouped[project.category].push(project);
+                });
+
+                // Ensure pinned projects are always on top inside each category too
+                Object.keys(grouped).forEach(cat => {
+                    grouped[cat] = getSortedProjects(grouped[cat]);
                 });
 
                 let html = '';
@@ -677,7 +807,11 @@
             
             // Add click listeners
             document.querySelectorAll('.project-card').forEach(card => {
-                card.addEventListener('click', () => openModal(card));
+                card.addEventListener('click', (e) => {
+                    // Don't open modal when clicking on inner links (file/telegram)
+                    if (e.target && e.target.closest && e.target.closest('[data-no-modal="true"]')) return;
+                    openModal(card);
+                });
             });
         }
 
